@@ -54,7 +54,7 @@ public class Bola {
         }
         posY = posY + direccionY;
         if(posY > VistaJuego.getLimite() - alto - direccionY){
-            vista.setFuncionando(false);
+            vista.setEstadoJuego(0);
         }
     }
 
@@ -100,6 +100,12 @@ public class Bola {
         direccionY = 0;
         posX = 0-bmp.getWidth();
         posY = 0-bmp.getHeight();
+    }
+
+    public void cambiaAngulo(){
+        Random r = new Random();
+        int nuevoAngulo = (int)(r.nextDouble() * 20 + 15);
+        direccionX = nuevoAngulo;
     }
 
     public Bitmap getBmp() {

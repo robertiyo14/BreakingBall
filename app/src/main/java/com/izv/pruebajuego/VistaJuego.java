@@ -16,7 +16,7 @@ import android.view.VelocityTracker;
  */
 public class VistaJuego extends SurfaceView implements SurfaceHolder.Callback {
 
-    private Bitmap bmpBola, bmpDerecha, bmpIzqierda, bmpPlataforma, bmpLadrillo;
+    private Bitmap bmpBola, bmpDerecha, bmpIzqierda, bmpPlataforma, bmpLadrillo, bmpInicio;
     private int alto, ancho;
     private HebraJuego hebraJuego;
     Control izquierda, derecha;
@@ -26,7 +26,7 @@ public class VistaJuego extends SurfaceView implements SurfaceHolder.Callback {
     private Ladrillo[] pantalla;
     private static boolean funcionando = false;
     private int contador = 0;
-
+    private int estadoJuego = 0; // 0 - Sin empezar | 1 - Jugando | 2 - Perdido
     public VistaJuego(Context context) {
         super(context);
         getHolder().addCallback(this);
@@ -35,7 +35,9 @@ public class VistaJuego extends SurfaceView implements SurfaceHolder.Callback {
         bmpIzqierda = BitmapFactory.decodeResource(getResources(), R.drawable.izq);
         bmpPlataforma = BitmapFactory.decodeResource(getResources(), R.drawable.plataforma);
         bmpLadrillo = BitmapFactory.decodeResource(getResources(), R.drawable.ladrillo);
+        bmpInicio = BitmapFactory.decodeResource(getResources(), R.drawable.titulo);
         pantalla = new Ladrillo[5];
+
         for (int i = 0; i < pantalla.length; i++) {
             pantalla[i] = new Ladrillo(bmpLadrillo);
         }
@@ -45,59 +47,62 @@ public class VistaJuego extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
-        limite = canvas.getHeight() - bmpIzqierda.getHeight();
-        canvas.drawColor(Color.RED);
         izquierda = new Control(this, bmpIzqierda, 0, canvas.getHeight() - bmpIzqierda.getHeight());
         derecha = new Control
                 (this, bmpDerecha, canvas.getWidth() - bmpDerecha.getWidth(), canvas.getHeight() - bmpDerecha.getHeight());
-        if (plataforma == null) {
-            plataforma = new Plataforma(this, bmpPlataforma, canvas.getWidth() / 2, limite - bmpPlataforma.getHeight());
-        }
-        izquierda.dibujar(canvas);
-        plataforma.dibujar(canvas);
-        derecha.dibujar(canvas);
-        if (b == null) {
-            b = new Bola(this, bmpBola);
-        }
-        if (pantallaTerminada(pantalla)) {
-            setFuncionando(false);
-        }
-        for (int i = 0; i < pantalla.length; i++) {
-            if (contador == 0) {
-                int margen = (canvas.getWidth() / 2) - (pantalla.length * bmpLadrillo.getWidth() / 2);
-                pantalla[i].setPosX(i * pantalla[i].getAncho() + margen);
-                pantalla[i].setPosY(canvas.getHeight() / 4);
-            }
-                pantalla[i].dibujar(canvas);
-        }
-        contador++;
-        b.dibujar(canvas);
-        if (b.colisiona(plataforma, 0)) {
-            b.cambiarDireccion();
-        }
-        for (Ladrillo l : pantalla) {
-            if (b.colisiona(l, 0)) {
-                l.eliminar();
-                l.setEliminado(true);
-                b.cambiarDireccion();
+        switch (estadoJuego){
+            case 0:
+                canvas.drawColor(Color.RED);
+                canvas.drawBitmap(bmpInicio,
+                        (canvas.getWidth()/2) - (bmpInicio.getWidth() / 2),
+                        (canvas.getHeight()/2) - (bmpInicio.getHeight()/2),
+                        null);
                 break;
-            }
+            case 1:
+                limite = canvas.getHeight() - bmpIzqierda.getHeight();
+                canvas.drawColor(Color.RED);
+                if (plataforma == null) {
+                    plataforma = new Plataforma(this, bmpPlataforma, canvas.getWidth() / 2, limite - bmpPlataforma.getHeight());
+                }
+                izquierda.dibujar(canvas);
+                plataforma.dibujar(canvas);
+                derecha.dibujar(canvas);
+                if (b == null) {
+                    b = new Bola(this, bmpBola);
+                }
+                if (pantallaTerminada(pantalla)) {
+                    estadoJuego = 0;
+                    //setFuncionando(false);
+                }
+                for (int i = 0; i < pantalla.length; i++) {
+                    if (contador == 0) {
+                        int margen = (canvas.getWidth() / 2) - (pantalla.length * bmpLadrillo.getWidth() / 2);
+                        pantalla[i].setPosX(i * pantalla[i].getAncho() + margen);
+                        pantalla[i].setPosY(canvas.getHeight() / 4);
+                    }
+                    pantalla[i].dibujar(canvas);
+                }
+                contador++;
+                b.dibujar(canvas);
+                if (b.colisiona(plataforma, 0)) {
+                    b.cambiaAngulo();
+                    b.cambiarDireccion();
+                }
+                for (Ladrillo l : pantalla) {
+                    if (b.colisiona(l, 0)) {
+                        l.eliminar();
+                        l.setEliminado(true);
+                        b.cambiarDireccion();
+                        break;
+                    }
+                }
+                break;
+            case 2:
+                break;
+            case 3:
+
+                break;
         }
-
-
-//        if (posY >= getHeight() - bmp.getHeight()) {
-//            direccionY = -10;
-//        }else if(posY <= 0){
-//            direccionY = 10;
-//        }
-//        if (posX >= getWidth() - bmp.getWidth()) {
-//            direccionX = -10;
-//        } else if (posX <= 0) {
-//            direccionX = 10;
-//        }
-//        posX = posX + direccionX;
-//        posY = posY + direccionY;
-//        canvas.drawBitmap(bmp, posX, posY, null);
     }
 
     public boolean pantallaTerminada(Ladrillo[] pantalla) {
@@ -114,13 +119,28 @@ public class VistaJuego extends SurfaceView implements SurfaceHolder.Callback {
         boolean toc = false;
         x = event.getX();
         y = event.getY();
-        Log.v("AAAAAAAAAAAAA", "Estoy en on touch event");
         synchronized (getHolder()) {
-            if (derecha.tocado(x, y)) {
-                plataforma.moverDerecha();
-                Log.v("AAAAAAAAAAAA", "estoy moviendo");
-            } else if (izquierda.tocado(x, y)) {
-                plataforma.moverIzquierda();
+            switch(estadoJuego){
+                case 0:
+                    if(x > (ancho/2)-(bmpInicio.getWidth()/2) &&
+                            x < (ancho/2)-(bmpInicio.getWidth()/2) + bmpInicio.getWidth() &&
+                            y > (alto/2)-(bmpInicio.getHeight()/2)&&
+                            y < (alto/2) - (bmpInicio.getHeight()/2) + bmpInicio.getHeight()){
+                        estadoJuego = 1;
+                        contador = 0;
+                        b = null;
+                        for(Ladrillo l : pantalla){
+                            l.setEliminado(false);
+                        }
+                    }
+                    break;
+                case 1:
+                    if (derecha.tocado(x, y)) {
+                        plataforma.moverDerecha();
+                    } else if (izquierda.tocado(x, y)) {
+                        plataforma.moverIzquierda();
+                    }
+                    break;
             }
         }
 
@@ -154,7 +174,10 @@ public class VistaJuego extends SurfaceView implements SurfaceHolder.Callback {
             } catch (InterruptedException e) {
             }
         }
+    }
 
+    public void setEstadoJuego(int estadoJuego) {
+        this.estadoJuego = estadoJuego;
     }
 
     public void setFuncionando(boolean f) {
