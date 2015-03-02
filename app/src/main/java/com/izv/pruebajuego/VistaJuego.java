@@ -16,7 +16,7 @@ import android.view.VelocityTracker;
  */
 public class VistaJuego extends SurfaceView implements SurfaceHolder.Callback {
 
-    private Bitmap bmpBola, bmpDerecha, bmpIzqierda, bmpPlataforma, bmpLadrillo, bmpInicio;
+    private Bitmap bmpBola, bmpDerecha, bmpIzqierda, bmpPlataforma, bmpLadrillo, bmpInicio, bmpFondo;
     private int alto, ancho;
     private HebraJuego hebraJuego;
     Control izquierda, derecha;
@@ -36,6 +36,7 @@ public class VistaJuego extends SurfaceView implements SurfaceHolder.Callback {
         bmpPlataforma = BitmapFactory.decodeResource(getResources(), R.drawable.plataforma);
         bmpLadrillo = BitmapFactory.decodeResource(getResources(), R.drawable.ladrillo);
         bmpInicio = BitmapFactory.decodeResource(getResources(), R.drawable.titulo);
+        bmpFondo = BitmapFactory.decodeResource(getResources(),R.drawable.fondo);
         pantalla = new Ladrillo[5];
 
         for (int i = 0; i < pantalla.length; i++) {
@@ -52,7 +53,7 @@ public class VistaJuego extends SurfaceView implements SurfaceHolder.Callback {
                 (this, bmpDerecha, canvas.getWidth() - bmpDerecha.getWidth(), canvas.getHeight() - bmpDerecha.getHeight());
         switch (estadoJuego){
             case 0:
-                canvas.drawColor(Color.RED);
+                canvas.drawColor(Color.CYAN);
                 canvas.drawBitmap(bmpInicio,
                         (canvas.getWidth()/2) - (bmpInicio.getWidth() / 2),
                         (canvas.getHeight()/2) - (bmpInicio.getHeight()/2),
@@ -60,7 +61,7 @@ public class VistaJuego extends SurfaceView implements SurfaceHolder.Callback {
                 break;
             case 1:
                 limite = canvas.getHeight() - bmpIzqierda.getHeight();
-                canvas.drawColor(Color.RED);
+                canvas.drawBitmap(bmpFondo,0,0,null);
                 if (plataforma == null) {
                     plataforma = new Plataforma(this, bmpPlataforma, canvas.getWidth() / 2, limite - bmpPlataforma.getHeight());
                 }
